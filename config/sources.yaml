@@ -1,0 +1,87 @@
+# News Sources Configuration for Sermon Illustrate
+
+sources:
+  # General News
+  - name: AP News
+    url: https://feeds.apnews.com/rss/headlines
+    category: general
+    enabled: true
+
+  - name: Reuters Top News
+    url: https://www.reutersagency.com/feed/?best-topics=top-news
+    category: general
+    enabled: true
+
+  - name: NPR News
+    url: https://feeds.npr.org/1001/rss.xml
+    category: general
+    enabled: true
+
+  # Politics
+  - name: The Atlantic Politics
+    url: https://www.theatlantic.com/feed/channel/politics/
+    category: politics
+    enabled: true
+
+  # Economics
+  - name: The Economist
+    url: https://www.economist.com/rss
+    category: economics
+    enabled: true
+
+  # Technology
+  - name: TechCrunch
+    url: https://techcrunch.com/feed/
+    category: technology
+    enabled: true
+
+  - name: Ars Technica
+    url: https://feeds.arstechnica.com/arstechnica/index
+    category: technology
+    enabled: true
+
+  # Science
+  - name: Science Daily
+    url: https://www.sciencedaily.com/rss/all.xml
+    category: science
+    enabled: true
+
+  - name: Nature News
+    url: https://www.nature.com/nature.rss
+    category: science
+    enabled: true
+
+  # Psychology
+  - name: Psychology Today
+    url: https://www.psychologytoday.com/us/articles/rss
+    category: psychology
+    enabled: true
+
+  # Medicine/Health
+  - name: Medical News Today
+    url: https://www.medicalnewstoday.com/rss/headlines.xml
+    category: medicine
+    enabled: true
+
+  # Culture
+  - name: The Atlantic Culture
+    url: https://www.theatlantic.com/feed/channel/entertainment/
+    category: culture
+    enabled: true
+
+# Categories for filtering
+categories:
+  - general
+  - politics
+  - economics
+  - technology
+  - science
+  - psychology
+  - medicine
+  - culture
+
+# Fetch settings
+settings:
+  fetch_interval_minutes: 60
+  max_articles_per_source: 20
+  article_retention_days: 30
