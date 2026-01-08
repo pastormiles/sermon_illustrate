@@ -1,5 +1,11 @@
 """Sermon Illustrate - Main application entry point."""
 
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load .env file
+load_dotenv(Path(__file__).parent.parent / ".env")
+
 import uvicorn
 from src.api.app import create_app
 

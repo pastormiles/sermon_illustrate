@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ page_title }} - Sermon Illustrate</title>
+    <title>{{ page_title }} - Sermon IllustrAIt</title>
     <link rel="stylesheet" href="/static/css/styles.css">
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -13,13 +13,21 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <div class="logo">
+                <a href="/" class="logo">
                     <i data-lucide="book-open" class="logo-icon"></i>
-                    <span class="logo-text">Sermon Illustrate</span>
-                </div>
+                    <span class="logo-text">Sermon Illustr<span style="color: #f59e0b;">AI</span>t</span>
+                </a>
             </div>
 
             <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <span class="nav-section-title">Search</span>
+                    <a href="/search" class="nav-item {% if page_title == 'Sermon Search' %}active{% endif %}" style="--category-color: #f59e0b;">
+                        <i data-lucide="sparkles" class="nav-icon"></i>
+                        <span>Find Illustrations</span>
+                    </a>
+                </div>
+
                 <div class="nav-section">
                     <span class="nav-section-title">Browse</span>
                     {% for category in categories %}
@@ -58,6 +66,11 @@
                     <i data-lucide="refresh-cw" class="sync-icon"></i>
                     <span>Last sync: 5 min ago</span>
                 </div>
+                <div class="sidebar-credits">
+                    <a href="http://nomion.ai" target="_blank">Nomion AI</a>
+                    <span>by</span>
+                    <a href="http://somainsights.org" target="_blank">SOMA Insights</a>
+                </div>
             </div>
         </aside>
 
@@ -69,10 +82,10 @@
                     {% block header_subtitle %}{% endblock %}
                 </div>
                 <div class="header-right">
-                    <div class="search-box">
+                    <form action="/search" method="GET" class="search-box">
                         <i data-lucide="search" class="search-icon"></i>
-                        <input type="text" placeholder="Search illustrations..." class="search-input">
-                    </div>
+                        <input type="text" name="q" placeholder="Search for sermon illustrations..." class="search-input">
+                    </form>
                     <button class="btn btn-primary">
                         <i data-lucide="refresh-cw"></i>
                         <span>Refresh Feeds</span>
@@ -83,6 +96,12 @@
             <div class="content-body">
                 {% block content %}{% endblock %}
             </div>
+
+            <footer class="content-footer">
+                <a href="http://nomion.ai" target="_blank">Nomion AI</a>
+                <span>by</span>
+                <a href="http://somainsights.org" target="_blank">SOMA Insights</a>
+            </footer>
         </main>
     </div>
 

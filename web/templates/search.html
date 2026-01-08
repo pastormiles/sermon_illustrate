@@ -1,0 +1,676 @@
+{% extends "base.html" %}
+
+{% block header_subtitle %}
+<p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
+    Find illustrations for your sermon topic, verse, or theme
+</p>
+{% endblock %}
+
+{% block content %}
+<!-- Search Box -->
+<div class="search-section">
+    <form action="/search" method="GET" class="sermon-search-form" id="search-form">
+        <div class="sermon-search-box">
+            <i data-lucide="search" class="sermon-search-icon"></i>
+            <input
+                type="text"
+                name="q"
+                value="{{ query }}"
+                placeholder="Enter a verse, theme, or sermon idea... (e.g., 'Proverbs 3:5 trusting God's plan')"
+                class="sermon-search-input"
+                autofocus
+            >
+            <div class="category-filter">
+                <select name="category" id="category-select" class="category-select">
+                    <option value="all" {% if selected_category == 'all' %}selected{% endif %}>All Categories</option>
+                    {% for cat in categories %}
+                    {% if cat.id != 'all' %}
+                    <option value="{{ cat.id }}" {% if selected_category == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary" id="search-btn">
+                <i data-lucide="sparkles" class="btn-icon-normal"></i>
+                <span class="btn-text-normal">Find Illustrations</span>
+                <span class="btn-loading" style="display: none;">
+                    <svg class="spinner" viewBox="0 0 24 24" width="16" height="16">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="30 70" />
+                    </svg>
+                    Searching...
+                </span>
+            </button>
+        </div>
+        <div class="search-suggestions">
+            <span>Try:</span>
+            <a href="/search?q=Proverbs%203:5%20trusting%20God%20over%20our%20own%20understanding">Proverbs 3:5 - Trust</a>
+            <a href="/search?q=forgiveness%20and%20reconciliation">Forgiveness</a>
+            <a href="/search?q=hope%20in%20difficult%20times">Hope in trials</a>
+            <a href="/search?q=community%20and%20serving%20others">Community & Service</a>
+        </div>
+    </form>
+</div>
+
+{% if error %}
+<div class="error-banner">
+    <i data-lucide="alert-circle"></i>
+    <span>{{ error }}</span>
+</div>
+{% endif %}
+
+{% if query and results %}
+<!-- Results Section -->
+<div class="results-section">
+    <div class="results-header">
+        <h2 class="section-title">
+            <i data-lucide="lightbulb" style="color: var(--warning);"></i>
+            Found {{ results|length }} illustration{{ 's' if results|length != 1 else '' }} for "{{ query }}"
+        </h2>
+    </div>
+
+    <div class="results-list">
+        {% for result in results %}
+        <div class="result-card">
+            <div class="result-scores">
+                <div class="relevance-score" title="Relevance to your sermon topic">
+                    <span class="score-value">{{ result.relevance_score }}%</span>
+                    <span class="score-label">Match</span>
+                </div>
+                <div class="illustration-score {% if result.illustration_score >= 85 %}high{% elif result.illustration_score >= 70 %}medium{% else %}low{% endif %}" title="Overall illustration potential">
+                    <span class="score-value">{{ result.illustration_score }}</span>
+                    <span class="score-label">Score</span>
+                </div>
+            </div>
+
+            <div class="result-content">
+                <div class="result-meta">
+                    <span class="article-category {{ result.category }}">{{ result.category }}</span>
+                    <span class="result-source">{{ result.source }}</span>
+                    <span class="result-time">{{ result.published }}</span>
+                </div>
+
+                <h3 class="result-title">
+                    <a href="{{ result.url }}" target="_blank">{{ result.title }}</a>
+                </h3>
+
+                <div class="result-connection">
+                    <i data-lucide="message-circle" style="width: 16px; height: 16px; color: var(--primary);"></i>
+                    <p>{{ result.connection }}</p>
+                </div>
+
+                <p class="result-summary">{{ result.summary[:300] }}{% if result.summary|length > 300 %}...{% endif %}</p>
+
+                <div class="result-themes">
+                    {% for theme in result.themes %}
+                    <span class="theme-tag">
+                        <i data-lucide="hash"></i>
+                        {{ theme }}
+                    </span>
+                    {% endfor %}
+                </div>
+
+                <!-- Finish Illustration Button -->
+                <div class="finish-illustration-section" id="finish-section-{{ result.id }}">
+                    <button class="btn btn-finish"
+                            data-article-id="{{ result.id }}"
+                            data-title="{{ result.title }}"
+                            data-connection="{{ result.connection }}"
+                            data-query="{{ query }}"
+                            onclick="finishIllustration(this)">
+                        <i data-lucide="wand-2"></i>
+                        <span>Finish Illustration</span>
+                    </button>
+                    <div class="finished-output" id="output-{{ result.id }}" style="display: none;">
+                        <div class="output-header">
+                            <i data-lucide="scroll-text"></i>
+                            <span>Sermon-Ready Illustration</span>
+                            <button class="btn-icon btn-copy" onclick="copyIllustration({{ result.id }})" title="Copy to clipboard">
+                                <i data-lucide="copy"></i>
+                            </button>
+                        </div>
+                        <p class="output-text" id="output-text-{{ result.id }}"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-actions">
+                <button class="btn-icon" title="Bookmark">
+                    <i data-lucide="bookmark"></i>
+                </button>
+                <button class="btn-icon" title="Add Note">
+                    <i data-lucide="message-square-plus"></i>
+                </button>
+                <a href="{{ result.url }}" target="_blank" class="btn-icon" title="Open Article">
+                    <i data-lucide="external-link"></i>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% elif query and not error %}
+<!-- No Results -->
+<div class="no-results">
+    <i data-lucide="search-x" class="no-results-icon"></i>
+    <h3>No illustrations found</h3>
+    <p>Try a different search term or browse articles by category.</p>
+    <a href="/" class="btn btn-secondary">
+        <i data-lucide="layout-grid"></i>
+        <span>Browse All Articles</span>
+    </a>
+</div>
+
+{% else %}
+<!-- Empty State -->
+<div class="search-empty-state">
+    <div class="empty-state-content">
+        <i data-lucide="book-open" class="empty-state-icon"></i>
+        <h2>Find the Perfect Illustration</h2>
+        <p>Enter a Bible verse, sermon theme, or topic above to discover relevant news stories that can bring your message to life.</p>
+
+        <div class="example-searches">
+            <h4>Example Searches</h4>
+            <div class="example-grid">
+                <a href="/search?q=Proverbs%203:5%20trusting%20God%20over%20our%20own%20understanding" class="example-card">
+                    <span class="example-verse">Proverbs 3:5</span>
+                    <span class="example-theme">Trust & Surrender</span>
+                </a>
+                <a href="/search?q=Romans%208:28%20God%20works%20all%20things%20for%20good" class="example-card">
+                    <span class="example-verse">Romans 8:28</span>
+                    <span class="example-theme">God's Providence</span>
+                </a>
+                <a href="/search?q=forgiveness%20letting%20go%20of%20bitterness" class="example-card">
+                    <span class="example-verse">Matthew 18:21-22</span>
+                    <span class="example-theme">Forgiveness</span>
+                </a>
+                <a href="/search?q=community%20bearing%20one%20another%27s%20burdens" class="example-card">
+                    <span class="example-verse">Galatians 6:2</span>
+                    <span class="example-theme">Community</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+.search-section {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+}
+
+.sermon-search-form {
+    width: 100%;
+}
+
+.sermon-search-box {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    background: var(--content-bg);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-sm) var(--spacing-md);
+    transition: all 0.2s ease;
+}
+
+.sermon-search-box:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+.sermon-search-icon {
+    width: 24px;
+    height: 24px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.sermon-search-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 16px;
+    padding: var(--spacing-sm) 0;
+    outline: none;
+}
+
+.sermon-search-input::placeholder {
+    color: var(--text-muted);
+}
+
+.category-filter {
+    flex-shrink: 0;
+}
+
+.category-select {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--card-bg);
+    color: var(--text-primary);
+    font-size: 14px;
+    cursor: pointer;
+    min-width: 140px;
+}
+
+.category-select:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.search-suggestions {
+    margin-top: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+    font-size: 13px;
+}
+
+.search-suggestions span {
+    color: var(--text-muted);
+}
+
+.search-suggestions a {
+    color: var(--primary);
+    text-decoration: none;
+    padding: 4px 12px;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 20px;
+    transition: all 0.15s ease;
+}
+
+.search-suggestions a:hover {
+    background: rgba(99, 102, 241, 0.2);
+}
+
+.error-banner {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-xl);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    color: var(--danger);
+}
+
+.results-section {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+}
+
+.results-header {
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.results-header .section-title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 18px;
+}
+
+.results-list {
+    padding: var(--spacing-md);
+}
+
+.result-card {
+    display: flex;
+    gap: var(--spacing-lg);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+    transition: all 0.15s ease;
+    margin-bottom: var(--spacing-md);
+}
+
+.result-card:hover {
+    background: var(--content-bg);
+    border-color: var(--border-color);
+}
+
+.result-scores {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    flex-shrink: 0;
+}
+
+.relevance-score, .illustration-score {
+    width: 64px;
+    padding: var(--spacing-sm);
+    border-radius: var(--radius-md);
+    text-align: center;
+}
+
+.relevance-score {
+    background: linear-gradient(135deg, var(--primary), #4f46e5);
+    color: white;
+}
+
+.illustration-score {
+    background: var(--content-bg);
+    border: 1px solid var(--border-color);
+}
+
+.illustration-score.high {
+    background: linear-gradient(135deg, var(--success), #059669);
+    color: white;
+    border: none;
+}
+
+.illustration-score.medium {
+    background: linear-gradient(135deg, var(--warning), #d97706);
+    color: white;
+    border: none;
+}
+
+.score-value {
+    display: block;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.score-label {
+    display: block;
+    font-size: 10px;
+    text-transform: uppercase;
+    opacity: 0.8;
+}
+
+.result-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.result-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-xs);
+}
+
+.result-source, .result-time {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.result-title {
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: var(--spacing-sm);
+    line-height: 1.4;
+}
+
+.result-title a {
+    color: var(--text-primary);
+    text-decoration: none;
+}
+
+.result-title a:hover {
+    color: var(--primary);
+}
+
+.result-connection {
+    display: flex;
+    gap: var(--spacing-sm);
+    background: rgba(99, 102, 241, 0.08);
+    border-left: 3px solid var(--primary);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    margin-bottom: var(--spacing-sm);
+}
+
+.result-connection p {
+    font-size: 14px;
+    color: var(--text-primary);
+    font-style: italic;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.result-summary {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: var(--spacing-sm);
+}
+
+.result-themes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+}
+
+.result-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    flex-shrink: 0;
+}
+
+.no-results, .search-empty-state {
+    text-align: center;
+    padding: 60px var(--spacing-xl);
+}
+
+.no-results-icon, .empty-state-icon {
+    width: 64px;
+    height: 64px;
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-md);
+}
+
+.search-empty-state {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+}
+
+.empty-state-content h2 {
+    font-size: 24px;
+    margin-bottom: var(--spacing-sm);
+}
+
+.empty-state-content p {
+    color: var(--text-secondary);
+    max-width: 500px;
+    margin: 0 auto var(--spacing-xl);
+}
+
+.example-searches {
+    margin-top: var(--spacing-xl);
+}
+
+.example-searches h4 {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-md);
+}
+
+.example-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-md);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.example-card {
+    display: flex;
+    flex-direction: column;
+    padding: var(--spacing-md);
+    background: var(--content-bg);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    border: 1px solid var(--border-color);
+    transition: all 0.15s ease;
+}
+
+.example-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+}
+
+.example-verse {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.example-theme {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+/* Spinner */
+.spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.btn-loading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Finish Illustration */
+.finish-illustration-section {
+    margin-top: var(--spacing-md);
+}
+
+.btn-finish {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    border: none;
+}
+
+.btn-finish:hover {
+    background: linear-gradient(135deg, #d97706, #b45309);
+}
+
+.btn-finish.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.finished-output {
+    margin-top: var(--spacing-md);
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.05));
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+}
+
+.output-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+    font-weight: 600;
+    color: var(--warning);
+}
+
+.output-header .btn-copy {
+    margin-left: auto;
+}
+
+.output-text {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text-primary);
+    margin: 0;
+}
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        lucide.createIcons();
+
+        // Handle search form submission loading state
+        const form = document.getElementById('search-form');
+        const btn = document.getElementById('search-btn');
+
+        if (form && btn) {
+            form.addEventListener('submit', function() {
+                btn.querySelector('.btn-icon-normal').style.display = 'none';
+                btn.querySelector('.btn-text-normal').style.display = 'none';
+                btn.querySelector('.btn-loading').style.display = 'flex';
+                btn.disabled = true;
+            });
+        }
+    });
+
+    async function finishIllustration(btn) {
+        const articleId = btn.dataset.articleId;
+        const title = btn.dataset.title;
+        const connection = btn.dataset.connection;
+        const query = btn.dataset.query;
+
+        const outputDiv = document.getElementById('output-' + articleId);
+        const outputText = document.getElementById('output-text-' + articleId);
+
+        // Show loading state
+        btn.innerHTML = '<svg class="spinner" viewBox="0 0 24 24" width="16" height="16"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="30 70" /></svg> Writing...';
+        btn.classList.add('loading');
+
+        try {
+            const response = await fetch('/api/finish-illustration', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    article_id: parseInt(articleId),
+                    title: title,
+                    connection: connection,
+                    sermon_topic: query
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.illustration) {
+                outputText.textContent = data.illustration;
+                outputDiv.style.display = 'block';
+                btn.style.display = 'none';
+                lucide.createIcons();
+            } else {
+                throw new Error(data.error || 'Failed to generate illustration');
+            }
+        } catch (err) {
+            alert('Error: ' + err.message);
+            btn.innerHTML = '<i data-lucide="wand-2"></i><span>Finish Illustration</span>';
+            btn.classList.remove('loading');
+            lucide.createIcons();
+        }
+    }
+
+    function copyIllustration(articleId) {
+        const text = document.getElementById('output-text-' + articleId).textContent;
+        navigator.clipboard.writeText(text).then(() => {
+            const btn = event.target.closest('.btn-copy');
+            btn.innerHTML = '<i data-lucide="check"></i>';
+            lucide.createIcons();
+            setTimeout(() => {
+                btn.innerHTML = '<i data-lucide="copy"></i>';
+                lucide.createIcons();
+            }, 2000);
+        });
+    }
+</script>
+{% endblock %}

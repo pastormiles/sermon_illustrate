@@ -4,6 +4,11 @@ import argparse
 import asyncio
 import sys
 from datetime import datetime
+from pathlib import Path
+
+# Load .env file
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).parent.parent / ".env")
 
 from src.storage.database import init_db, SessionLocal
 from src.storage.models import Source, Article

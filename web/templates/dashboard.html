@@ -90,6 +90,46 @@
                         </span>
                         {% endfor %}
                     </div>
+                    <!-- Illustrate Section -->
+                    <div class="illustrate-section" id="illustrate-section-{{ article.id }}">
+                        <button class="btn btn-illustrate"
+                                data-article-id="{{ article.id }}"
+                                data-title="{{ article.title }}"
+                                data-summary="{{ article.summary[:200] if article.summary else '' }}"
+                                onclick="showIllustrateForm(this)">
+                            <i data-lucide="wand-2"></i>
+                            <span>Illustrate</span>
+                        </button>
+                        <div class="illustrate-form" id="form-{{ article.id }}" style="display: none;">
+                            <div class="form-row">
+                                <input type="text"
+                                       id="topic-{{ article.id }}"
+                                       placeholder="Enter your sermon topic (e.g., 'Trust in God's plan')"
+                                       class="topic-input">
+                                <button class="btn btn-primary btn-generate"
+                                        data-article-id="{{ article.id }}"
+                                        onclick="generateIllustration(this)">
+                                    <i data-lucide="sparkles" class="btn-icon-normal"></i>
+                                    <span class="btn-text-normal">Generate</span>
+                                    <span class="btn-loading" style="display: none;">
+                                        <svg class="spinner" viewBox="0 0 24 24" width="16" height="16">
+                                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="30 70" />
+                                        </svg>
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="illustration-output" id="output-{{ article.id }}" style="display: none;">
+                            <div class="output-header">
+                                <i data-lucide="scroll-text"></i>
+                                <span>Sermon-Ready Illustration</span>
+                                <button class="btn-icon btn-copy" onclick="copyIllustration({{ article.id }})" title="Copy to clipboard">
+                                    <i data-lucide="copy"></i>
+                                </button>
+                            </div>
+                            <p class="output-text" id="output-text-{{ article.id }}"></p>
+                        </div>
+                    </div>
                 </div>
                 <div class="article-actions">
                     <button class="btn-icon" title="Bookmark">
@@ -98,9 +138,9 @@
                     <button class="btn-icon" title="Add Note">
                         <i data-lucide="message-square-plus"></i>
                     </button>
-                    <button class="btn-icon" title="Open Article">
+                    <a href="{{ article.url }}" target="_blank" class="btn-icon" title="Open Article">
                         <i data-lucide="external-link"></i>
-                    </button>
+                    </a>
                 </div>
             </div>
             {% endfor %}
@@ -114,10 +154,170 @@
     </div>
 </div>
 
+<style>
+.illustrate-section {
+    margin-top: var(--spacing-md);
+}
+
+.btn-illustrate {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    border: none;
+    font-size: 13px;
+    padding: 6px 12px;
+}
+
+.btn-illustrate:hover {
+    background: linear-gradient(135deg, #d97706, #b45309);
+}
+
+.illustrate-form {
+    margin-top: var(--spacing-sm);
+}
+
+.form-row {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.topic-input {
+    flex: 1;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    background: var(--content-bg);
+}
+
+.topic-input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.btn-generate {
+    flex-shrink: 0;
+}
+
+.illustration-output {
+    margin-top: var(--spacing-md);
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.05));
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+}
+
+.output-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+    font-weight: 600;
+    color: var(--warning);
+}
+
+.output-header .btn-copy {
+    margin-left: auto;
+}
+
+.output-text {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+</style>
+
 <script>
     // Re-initialize icons after page load
     document.addEventListener('DOMContentLoaded', function() {
         lucide.createIcons();
     });
+
+    function showIllustrateForm(btn) {
+        const articleId = btn.dataset.articleId;
+        const form = document.getElementById('form-' + articleId);
+        btn.style.display = 'none';
+        form.style.display = 'block';
+        document.getElementById('topic-' + articleId).focus();
+        lucide.createIcons();
+    }
+
+    async function generateIllustration(btn) {
+        const articleId = btn.dataset.articleId;
+        const topicInput = document.getElementById('topic-' + articleId);
+        const topic = topicInput.value.trim();
+
+        if (!topic) {
+            topicInput.focus();
+            return;
+        }
+
+        const outputDiv = document.getElementById('output-' + articleId);
+        const outputText = document.getElementById('output-text-' + articleId);
+
+        // Show loading state
+        btn.querySelector('.btn-icon-normal').style.display = 'none';
+        btn.querySelector('.btn-text-normal').style.display = 'none';
+        btn.querySelector('.btn-loading').style.display = 'flex';
+        btn.disabled = true;
+
+        try {
+            // Get article data from the illustrate button
+            const illustrateBtn = document.querySelector(`#illustrate-section-${articleId} .btn-illustrate`);
+            const title = illustrateBtn.dataset.title;
+            const summary = illustrateBtn.dataset.summary;
+
+            const response = await fetch('/api/finish-illustration', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    article_id: parseInt(articleId),
+                    title: title,
+                    connection: summary,
+                    sermon_topic: topic
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.illustration) {
+                outputText.textContent = data.illustration;
+                outputDiv.style.display = 'block';
+                document.getElementById('form-' + articleId).style.display = 'none';
+                lucide.createIcons();
+            } else {
+                throw new Error(data.error || 'Failed to generate illustration');
+            }
+        } catch (err) {
+            alert('Error: ' + err.message);
+            btn.querySelector('.btn-icon-normal').style.display = '';
+            btn.querySelector('.btn-text-normal').style.display = '';
+            btn.querySelector('.btn-loading').style.display = 'none';
+            btn.disabled = false;
+            lucide.createIcons();
+        }
+    }
+
+    function copyIllustration(articleId) {
+        const text = document.getElementById('output-text-' + articleId).textContent;
+        navigator.clipboard.writeText(text).then(() => {
+            const btn = event.target.closest('.btn-copy');
+            btn.innerHTML = '<i data-lucide="check"></i>';
+            lucide.createIcons();
+            setTimeout(() => {
+                btn.innerHTML = '<i data-lucide="copy"></i>';
+                lucide.createIcons();
+            }, 2000);
+        });
+    }
 </script>
 {% endblock %}
