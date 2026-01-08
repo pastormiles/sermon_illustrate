@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block header_subtitle %}
+<p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
+    Configure your daily illustration digest
+</p>
+{% endblock %}
+
+{% block content %}
+<div class="settings-grid">
+    <div class="settings-card">
+        <h3 class="settings-card-title">
+            <i data-lucide="mail"></i>
+            Email Settings
+        </h3>
+        <div class="form-group">
+            <label class="form-label">Delivery Email</label>
+            <input type="email" class="form-input" placeholder="your@email.com">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Delivery Time</label>
+            <select class="form-input">
+                <option>6:00 AM</option>
+                <option selected>7:00 AM</option>
+                <option>8:00 AM</option>
+                <option>9:00 AM</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Frequency</label>
+            <select class="form-input">
+                <option selected>Daily</option>
+                <option>Weekdays only</option>
+                <option>Weekly (Monday)</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="settings-card">
+        <h3 class="settings-card-title">
+            <i data-lucide="filter"></i>
+            Content Preferences
+        </h3>
+        <div class="form-group">
+            <label class="form-label">Minimum Illustration Score</label>
+            <input type="range" min="50" max="100" value="80" class="form-input" style="padding: 0;">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+                <span>50</span>
+                <span>Current: 80</span>
+                <span>100</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Articles per Digest</label>
+            <select class="form-input">
+                <option>5 articles</option>
+                <option selected>10 articles</option>
+                <option>15 articles</option>
+                <option>20 articles</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="settings-card">
+        <h3 class="settings-card-title">
+            <i data-lucide="layers"></i>
+            Categories to Include
+        </h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            {% for category in categories %}
+            {% if category.id != 'all' %}
+            <label style="display: flex; align-items: center; gap: 8px; padding: 8px; background: var(--content-bg); border-radius: 6px; cursor: pointer;">
+                <input type="checkbox" checked style="width: 16px; height: 16px;">
+                <span class="article-category {{ category.id }}">{{ category.name }}</span>
+            </label>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="settings-card">
+        <h3 class="settings-card-title">
+            <i data-lucide="hash"></i>
+            Biblical Themes
+        </h3>
+        <div class="form-group">
+            <label class="form-label">Priority Themes (comma separated)</label>
+            <input type="text" class="form-input" placeholder="grace, redemption, hope, love, forgiveness">
+        </div>
+        <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">
+            Articles matching these themes will be prioritized in your digest.
+        </p>
+    </div>
+</div>
+
+<div style="margin-top: 24px; display: flex; gap: 12px;">
+    <button class="btn btn-primary">
+        <i data-lucide="save"></i>
+        <span>Save Settings</span>
+    </button>
+    <button class="btn btn-secondary">
+        <i data-lucide="send"></i>
+        <span>Send Test Digest</span>
+    </button>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        lucide.createIcons();
+    });
+</script>
+{% endblock %}

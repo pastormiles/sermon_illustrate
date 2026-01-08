@@ -20,17 +20,17 @@ A Python-based news feed scanning app for pastors to discover sermon illustratio
 - [x] Initialize Git repository
 - [x] Create project documentation (claude.md, README.md)
 - [x] Set up project structure
-- [ ] Configure Python environment
+- [x] Configure Python environment
 
 ### Phase 2: Feed Aggregation Engine
-- [ ] Implement RSS/Atom feed parser
-- [ ] Create news source configuration (sources.yaml)
-- [ ] Build async feed fetcher
-- [ ] Add rate limiting and error handling
+- [x] Implement RSS/Atom feed parser
+- [x] Create news source configuration (sources.yaml)
+- [x] Build async feed fetcher
+- [x] Add rate limiting and error handling
 
 ### Phase 3: Database & Storage
-- [ ] Design database schema (articles, sources, tags, bookmarks)
-- [ ] Implement SQLAlchemy models
+- [x] Design database schema (articles, sources, tags, bookmarks)
+- [x] Implement SQLAlchemy models
 - [ ] Create migration system (Alembic)
 
 ### Phase 4: Content Processing
@@ -40,9 +40,9 @@ A Python-based news feed scanning app for pastors to discover sermon illustratio
 - [ ] Create biblical theme matcher
 
 ### Phase 5: Web Dashboard
-- [ ] Set up FastAPI application
-- [ ] Create base templates (HTMX + Jinja2)
-- [ ] Build article listing views
+- [x] Set up FastAPI application
+- [x] Create base templates (HTMX + Jinja2)
+- [x] Build article listing views
 - [ ] Implement bookmark/save functionality
 - [ ] Add search and filtering
 - [ ] Create notes/annotation system
@@ -98,6 +98,12 @@ A Python-based news feed scanning app for pastors to discover sermon illustratio
 - Initialized Git and connected to GitHub
 - Set up project structure and documentation
 - Created initial configuration files
+- Built web dashboard with dark sidebar UI (FastAPI + Jinja2 + HTMX)
+- Implemented feed aggregation engine (RSS parser, async fetcher)
+- Created database models (Source, Article, Theme)
+- Added CLI tool for feed management
+- Successfully fetched 210 articles from 6 sources
+- Connected live feed data to web dashboard
 
 ---
 

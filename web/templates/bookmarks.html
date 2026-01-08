@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block header_subtitle %}
+<p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
+    Your saved sermon illustrations
+</p>
+{% endblock %}
+
+{% block content %}
+<div class="articles-section">
+    <div class="section-header">
+        <h2 class="section-title">Saved Illustrations</h2>
+        <div style="display: flex; gap: 8px;">
+            <button class="btn btn-secondary">
+                <i data-lucide="download"></i>
+                <span>Export</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="articles-list">
+        <div class="empty-state" style="padding: 64px;">
+            <i data-lucide="bookmark" class="empty-state-icon"></i>
+            <h3 class="empty-state-title">No bookmarks yet</h3>
+            <p class="empty-state-text">Save articles from the dashboard to build your illustration library.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        lucide.createIcons();
+    });
+</script>
+{% endblock %}

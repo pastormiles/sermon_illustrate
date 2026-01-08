@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block header_subtitle %}
+<p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
+    Discover stories that illuminate your sermons
+</p>
+{% endblock %}
+
+{% block content %}
+<!-- Stats Overview -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-label">Articles Today</span>
+            <i data-lucide="file-text" class="stat-icon"></i>
+        </div>
+        <div class="stat-value">{{ stats.articles_today if stats else articles|length }}</div>
+        <div class="stat-change">Fetched today</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-label">High Potential</span>
+            <i data-lucide="sparkles" class="stat-icon"></i>
+        </div>
+        <div class="stat-value">{{ stats.high_potential if stats else 0 }}</div>
+        <div class="stat-change positive">Stories scoring 85+</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-label">Bookmarked</span>
+            <i data-lucide="bookmark" class="stat-icon"></i>
+        </div>
+        <div class="stat-value">{{ stats.bookmarked if stats else 0 }}</div>
+        <div class="stat-change">Saved illustrations</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <span class="stat-label">Sources</span>
+            <i data-lucide="rss" class="stat-icon"></i>
+        </div>
+        <div class="stat-value">{{ stats.sources if stats else 12 }}</div>
+        <div class="stat-change">Active feeds</div>
+    </div>
+</div>
+
+<!-- Articles Section -->
+<div class="articles-section">
+    <div class="section-header">
+        <h2 class="section-title">
+            {% if active_category == 'all' %}
+                Top Illustration Candidates
+            {% else %}
+                {{ page_title }} Stories
+            {% endif %}
+        </h2>
+        <div style="display: flex; gap: 8px;">
+            <button class="btn btn-secondary">
+                <i data-lucide="sliders-horizontal"></i>
+                <span>Filter</span>
+            </button>
+            <button class="btn btn-secondary">
+                <i data-lucide="arrow-up-down"></i>
+                <span>Sort by Score</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="articles-list">
+        {% if articles %}
+            {% for article in articles %}
+            <div class="article-card">
+                <div class="article-score {% if article.illustration_score and article.illustration_score >= 90 %}high{% elif article.illustration_score and article.illustration_score >= 75 %}medium{% else %}low{% endif %}">
+                    {{ article.illustration_score|int if article.illustration_score else '—' }}
+                </div>
+                <div class="article-content">
+                    <div class="article-meta">
+                        <span class="article-category {{ article.category }}">{{ article.category }}</span>
+                        <span class="article-source">{{ article.source }}</span>
+                        <span class="article-time">{{ article.published }}</span>
+                    </div>
+                    <h3 class="article-title">
+                        <a href="{{ article.url }}">{{ article.title }}</a>
+                    </h3>
+                    <p class="article-summary">{{ article.summary }}</p>
+                    <div class="article-themes">
+                        {% for theme in article.themes %}
+                        <span class="theme-tag">
+                            <i data-lucide="hash"></i>
+                            {{ theme }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="article-actions">
+                    <button class="btn-icon" title="Bookmark">
+                        <i data-lucide="bookmark"></i>
+                    </button>
+                    <button class="btn-icon" title="Add Note">
+                        <i data-lucide="message-square-plus"></i>
+                    </button>
+                    <button class="btn-icon" title="Open Article">
+                        <i data-lucide="external-link"></i>
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <i data-lucide="inbox" class="empty-state-icon"></i>
+                <h3 class="empty-state-title">No articles found</h3>
+                <p class="empty-state-text">Try selecting a different category or refreshing your feeds.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    // Re-initialize icons after page load
+    document.addEventListener('DOMContentLoaded', function() {
+        lucide.createIcons();
+    });
+</script>
+{% endblock %}

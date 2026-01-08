@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }} - Sermon Illustrate</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i data-lucide="book-open" class="logo-icon"></i>
+                    <span class="logo-text">Sermon Illustrate</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <span class="nav-section-title">Browse</span>
+                    {% for category in categories %}
+                    <a href="/category/{{ category.id }}"
+                       class="nav-item {% if active_category == category.id %}active{% endif %}"
+                       style="--category-color: {{ category.color }}">
+                        <i data-lucide="{{ category.icon }}" class="nav-icon"></i>
+                        <span>{{ category.name }}</span>
+                    </a>
+                    {% endfor %}
+                </div>
+
+                <div class="nav-section">
+                    <span class="nav-section-title">Library</span>
+                    <a href="/bookmarks" class="nav-item {% if page_title == 'Bookmarks' %}active{% endif %}">
+                        <i data-lucide="bookmark" class="nav-icon"></i>
+                        <span>Bookmarks</span>
+                    </a>
+                    <a href="/digest" class="nav-item {% if page_title == 'Daily Digest' %}active{% endif %}">
+                        <i data-lucide="mail" class="nav-icon"></i>
+                        <span>Daily Digest</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <span class="nav-section-title">Settings</span>
+                    <a href="/settings" class="nav-item {% if page_title == 'Settings' %}active{% endif %}">
+                        <i data-lucide="settings" class="nav-icon"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="sync-status">
+                    <i data-lucide="refresh-cw" class="sync-icon"></i>
+                    <span>Last sync: 5 min ago</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <div class="header-left">
+                    <h1 class="page-title">{{ page_title }}</h1>
+                    {% block header_subtitle %}{% endblock %}
+                </div>
+                <div class="header-right">
+                    <div class="search-box">
+                        <i data-lucide="search" class="search-icon"></i>
+                        <input type="text" placeholder="Search illustrations..." class="search-input">
+                    </div>
+                    <button class="btn btn-primary">
+                        <i data-lucide="refresh-cw"></i>
+                        <span>Refresh Feeds</span>
+                    </button>
+                </div>
+            </header>
+
+            <div class="content-body">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block header_subtitle %}
+<p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
+    Configure your application settings
+</p>
+{% endblock %}
+
+{% block content %}
+<div class="settings-grid">
+    <div class="settings-card">
+        <h3 class="settings-card-title">
+            <i data-lucide="key"></i>
+            API Configuration
+        </h3>
+        <div class="form-group">
+            <label class="form-label">Anthropic API Key</label>
+            <input type="password" class="form-input" placeholder="sk-ant-...">
+        </div>
+        <p style="font-size: 12px; color: var(--text-muted);">
+            Required for AI-powered illustration detection.
+        </p>
+    </div>
+
+    <div class="settings-card">
+        <h3 class="settings-card-title">
+            <i data-lucide="rss"></i>
+            Feed Settings
+        </h3>
+        <div class="form-group">
+            <label class="form-label">Refresh Interval</label>
+            <select class="form-input">
+                <option>Every 30 minutes</option>
+                <option selected>Every hour</option>
+                <option>Every 2 hours</option>
+                <option>Every 4 hours</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Articles to Keep (days)</label>
+            <select class="form-input">
+                <option>7 days</option>
+                <option>14 days</option>
+                <option selected>30 days</option>
+                <option>90 days</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="settings-card">
+        <h3 class="settings-card-title">
+            <i data-lucide="database"></i>
+            Data Management
+        </h3>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            <button class="btn btn-secondary" style="width: 100%; justify-content: center;">
+                <i data-lucide="download"></i>
+                <span>Export All Data</span>
+            </button>
+            <button class="btn btn-secondary" style="width: 100%; justify-content: center;">
+                <i data-lucide="upload"></i>
+                <span>Import Data</span>
+            </button>
+            <button class="btn btn-secondary" style="width: 100%; justify-content: center; color: var(--danger);">
+                <i data-lucide="trash-2"></i>
+                <span>Clear All Articles</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="settings-card">
+        <h3 class="settings-card-title">
+            <i data-lucide="info"></i>
+            About
+        </h3>
+        <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.8;">
+            <p><strong>Sermon Illustrate</strong> v0.1.0</p>
+            <p>A news feed scanner for discovering sermon illustrations across multiple disciplines.</p>
+            <p style="margin-top: 12px;">
+                <a href="https://github.com/pastormiles/sermon_illustrate" style="color: var(--primary); text-decoration: none;">
+                    View on GitHub
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<div style="margin-top: 24px;">
+    <button class="btn btn-primary">
+        <i data-lucide="save"></i>
+        <span>Save Settings</span>
+    </button>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        lucide.createIcons();
+    });
+</script>
+{% endblock %}
