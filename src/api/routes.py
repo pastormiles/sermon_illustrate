@@ -13,6 +13,12 @@ from src.feeds.fetcher import refresh_feeds
 from src.feeds.loader import init_data
 from src.processors.analyzer import analyze_batch
 from src.processors.search import search_illustrations, SearchResult
+from src.integrations.twitter import (
+    get_twitter_config,
+    TwitterAuth,
+    get_client_from_token,
+    search_tweets,
+)
 
 router = APIRouter()
 
@@ -195,14 +201,8 @@ async def digest(request: Request):
 @router.get("/settings")
 async def settings(request: Request, db: Session = Depends(get_db)):
     """Settings page."""
-    # Get all sources grouped by category
-    sources = db.query(Source).order_by(Source.category, Source.name).all()
-    sources_by_category = {}
-    for source in sources:
-        cat = source.category or "general"
-        if cat not in sources_by_category:
-            sources_by_category[cat] = []
-        sources_by_category[cat].append(source)
+    # Get all sources sorted by category then name
+    all_sources = db.query(Source).order_by(Source.category, Source.name).all()
 
     return templates.TemplateResponse(
         "settings.html",
@@ -212,7 +212,7 @@ async def settings(request: Request, db: Session = Depends(get_db)):
             "category_colors": CATEGORY_COLORS,
             "active_category": None,
             "page_title": "Settings",
-            "sources_by_category": sources_by_category,
+            "all_sources": all_sources,
         },
     )
 
@@ -460,3 +460,67 @@ async def api_add_source(request: Request, db: Session = Depends(get_db)):
     db.commit()
 
     return {"success": True, "id": source.id}
+
+
+# Twitter integration endpoints
+
+@router.get("/auth/twitter")
+async def twitter_auth_start():
+    """Start Twitter OAuth flow."""
+    config = get_twitter_config()
+    if not config:
+        raise HTTPException(status_code=500, detail="Twitter not configured. Add TWITTER_CLIENT_ID and TWITTER_CLIENT_SECRET to .env")
+
+    auth_url, state = TwitterAuth.start_auth(config)
+    return RedirectResponse(url=auth_url)
+
+
+@router.get("/auth/twitter/callback")
+async def twitter_auth_callback(request: Request, code: str = None, state: str = None, error: str = None):
+    """Handle Twitter OAuth callback."""
+    if error:
+        return RedirectResponse(url="/settings?twitter_error=" + error)
+
+    if not code or not state:
+        return RedirectResponse(url="/settings?twitter_error=missing_params")
+
+    token = TwitterAuth.complete_auth(state, code)
+    if not token:
+        return RedirectResponse(url="/settings?twitter_error=auth_failed")
+
+    # Store token (using "default" as user ID for single-user setup)
+    TwitterAuth.store_token("default", token)
+
+    return RedirectResponse(url="/settings?twitter_success=true")
+
+
+@router.post("/api/twitter/disconnect")
+async def twitter_disconnect():
+    """Disconnect Twitter account."""
+    TwitterAuth.remove_token("default")
+    return {"success": True}
+
+
+@router.get("/api/twitter/search")
+async def twitter_search(q: str, limit: int = 20):
+    """Search Twitter for tweets."""
+    token = TwitterAuth.get_token("default")
+    if not token:
+        raise HTTPException(status_code=401, detail="Twitter not connected")
+
+    client = get_client_from_token(token.get("access_token"))
+    tweets = search_tweets(client, q, max_results=limit)
+
+    return {"tweets": tweets}
+
+
+@router.get("/api/twitter/status")
+async def twitter_status():
+    """Check if Twitter is connected."""
+    config = get_twitter_config()
+    token = TwitterAuth.get_token("default")
+
+    return {
+        "configured": config is not None,
+        "connected": token is not None,
+    }

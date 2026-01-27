@@ -20,17 +20,12 @@
         </button>
     </div>
 
-    <div class="sources-list">
-        {% for category, sources_list in sources_by_category.items() %}
-        <div class="category-group">
-            <h3 class="category-title">{{ category|title }}</h3>
-            {% for source in sources_list %}
-            <div class="source-item" data-source-id="{{ source.id }}">
-                <div class="source-info">
-                    <span class="source-name">{{ source.name }}</span>
-                    <span class="source-url">{{ source.url[:50] }}{% if source.url|length > 50 %}...{% endif %}</span>
-                </div>
-                <div class="source-actions">
+    <div class="sources-grid">
+        {% for source in all_sources %}
+        <div class="source-card {% if not source.enabled %}disabled{% endif %}" data-source-id="{{ source.id }}">
+            <div class="source-card-header">
+                <span class="source-category-badge {{ source.category }}">{{ source.category|title }}</span>
+                <div class="source-card-actions">
                     <label class="toggle">
                         <input type="checkbox" {% if source.enabled %}checked{% endif %} onchange="toggleSource({{ source.id }}, this.checked)">
                         <span class="toggle-slider"></span>
@@ -40,9 +35,30 @@
                     </button>
                 </div>
             </div>
-            {% endfor %}
+            <h4 class="source-card-name">{{ source.name }}</h4>
+            <p class="source-card-url">{{ source.url[:45] }}{% if source.url|length > 45 %}...{% endif %}</p>
         </div>
         {% endfor %}
+    </div>
+</div>
+
+<!-- Twitter Integration -->
+<div class="twitter-section">
+    <div class="section-header">
+        <h2 class="section-title">
+            <i data-lucide="twitter"></i>
+            X (Twitter) Integration
+        </h2>
+    </div>
+    <div class="twitter-card" id="twitter-status">
+        <div class="twitter-info">
+            <p class="twitter-description">
+                Connect your X/Twitter account to search trending topics and find timely sermon illustrations from current conversations.
+            </p>
+        </div>
+        <div class="twitter-actions" id="twitter-actions">
+            <!-- Populated by JavaScript -->
+        </div>
     </div>
 </div>
 
@@ -171,58 +187,85 @@
     font-size: 18px;
 }
 
-.sources-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-lg);
+.sources-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-md);
 }
 
-.category-group {
+@media (max-width: 1200px) {
+    .sources-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .sources-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.source-card {
+    background: var(--content-bg);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    overflow: hidden;
+    padding: var(--spacing-md);
+    transition: all 0.15s ease;
 }
 
-.category-title {
-    background: var(--content-bg);
-    padding: var(--spacing-sm) var(--spacing-md);
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    border-bottom: 1px solid var(--border-color);
+.source-card:hover {
+    border-color: var(--primary);
+    box-shadow: var(--shadow-sm);
 }
 
-.source-item {
+.source-card.disabled {
+    opacity: 0.5;
+}
+
+.source-card-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    padding: var(--spacing-md);
-    border-bottom: 1px solid var(--border-color);
+    align-items: flex-start;
+    margin-bottom: var(--spacing-sm);
 }
 
-.source-item:last-child {
-    border-bottom: none;
+.source-category-badge {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--primary);
+    color: white;
 }
 
-.source-info {
+.source-category-badge.general { background: #8b5cf6; }
+.source-category-badge.politics { background: #ec4899; }
+.source-category-badge.economics { background: #f59e0b; }
+.source-category-badge.technology { background: #10b981; }
+.source-category-badge.science { background: #06b6d4; }
+.source-category-badge.psychology { background: #f97316; }
+.source-category-badge.medicine { background: #ef4444; }
+.source-category-badge.culture { background: #a855f7; }
+
+.source-card-actions {
     display: flex;
-    flex-direction: column;
-    gap: 2px;
+    align-items: center;
+    gap: var(--spacing-sm);
 }
 
-.source-name {
-    font-weight: 500;
+.source-card-name {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0 0 4px 0;
+    color: var(--text-primary);
 }
 
-.source-url {
+.source-card-url {
     font-size: 12px;
     color: var(--text-muted);
-}
-
-.source-actions {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
+    margin: 0;
+    word-break: break-all;
 }
 
 .btn-delete {
@@ -326,6 +369,77 @@
     border-top: 1px solid var(--border-color);
 }
 
+/* Twitter Section */
+.twitter-section {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+    border: 1px solid var(--border-color);
+}
+
+.twitter-section .section-header {
+    margin-bottom: var(--spacing-md);
+}
+
+.twitter-section .section-title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 18px;
+}
+
+.twitter-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--spacing-lg);
+    padding: var(--spacing-md);
+    background: var(--content-bg);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+}
+
+.twitter-description {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.twitter-status {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 14px;
+    color: var(--success);
+    margin-bottom: var(--spacing-sm);
+}
+
+.twitter-status.not-configured {
+    color: var(--text-muted);
+}
+
+.btn-twitter {
+    background: #1DA1F2;
+    color: white;
+    border: none;
+}
+
+.btn-twitter:hover {
+    background: #1a8cd8;
+}
+
+.btn-disconnect {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+}
+
+.btn-disconnect:hover {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
 .settings-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -334,9 +448,72 @@
 </style>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', async function() {
         lucide.createIcons();
+        await checkTwitterStatus();
+
+        // Check for Twitter auth result in URL
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('twitter_success')) {
+            alert('Twitter connected successfully!');
+            window.history.replaceState({}, '', '/settings');
+        } else if (params.get('twitter_error')) {
+            alert('Twitter connection failed: ' + params.get('twitter_error'));
+            window.history.replaceState({}, '', '/settings');
+        }
     });
+
+    async function checkTwitterStatus() {
+        const actionsDiv = document.getElementById('twitter-actions');
+        try {
+            const response = await fetch('/api/twitter/status');
+            const data = await response.json();
+
+            if (data.connected) {
+                actionsDiv.innerHTML = `
+                    <div>
+                        <div class="twitter-status">
+                            <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+                            <span>Connected to X</span>
+                        </div>
+                        <button class="btn btn-disconnect" onclick="disconnectTwitter()">
+                            <i data-lucide="unlink"></i>
+                            <span>Disconnect</span>
+                        </button>
+                    </div>
+                `;
+            } else if (data.configured) {
+                actionsDiv.innerHTML = `
+                    <a href="/auth/twitter" class="btn btn-twitter">
+                        <i data-lucide="twitter"></i>
+                        <span>Connect X Account</span>
+                    </a>
+                `;
+            } else {
+                actionsDiv.innerHTML = `
+                    <div>
+                        <div class="twitter-status not-configured">
+                            <i data-lucide="alert-circle" style="width: 16px; height: 16px;"></i>
+                            <span>Not configured - Add Twitter API keys to .env</span>
+                        </div>
+                    </div>
+                `;
+            }
+            lucide.createIcons();
+        } catch (err) {
+            actionsDiv.innerHTML = '<span style="color: var(--danger);">Error checking status</span>';
+        }
+    }
+
+    async function disconnectTwitter() {
+        if (!confirm('Disconnect your X/Twitter account?')) return;
+        try {
+            await fetch('/api/twitter/disconnect', { method: 'POST' });
+            await checkTwitterStatus();
+        } catch (err) {
+            alert('Error disconnecting: ' + err.message);
+        }
+    }
 
     function showAddSourceModal() {
         document.getElementById('add-source-modal').style.display = 'flex';
